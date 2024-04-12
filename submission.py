@@ -97,3 +97,11 @@ def predict_outcomes(df, background_df=None, model_path="model.joblib"):
 
     # Return only dataset with predictions and identifier
     return df_predict
+
+def main():
+    train = pd.read_csv("../data/training_data/PreFer_train_data.csv", low_memory = False) 
+    fake = pd.read_csv("../data/other_data/PreFer_fake_data.csv") 
+    print(predict_outcomes(train))
+
+if __name__ == '__main__':
+    main()
