@@ -19,7 +19,7 @@ run.py can be used to test your submission.
 import pandas as pd
 from sklearn.linear_model import LogisticRegression
 import joblib
-
+import numpy as np
 
 def clean_df(df, background_df=None):
     """
@@ -34,18 +34,40 @@ def clean_df(df, background_df=None):
     pd.DataFrame: The cleaned dataframe with only the necessary columns and processed variables.
     """
 
-    ## This script contains a bare minimum working example
-    # Create new variable with age
-    df["age"] = 2024 - df["birthyear_bg"]
-
+    # Age, Age^2 & Age^3;
     # Imputing missing values in age with the mean
+
+    # Partner
+    df["y_partner"] = (df["cf20m024"] % 2).fillna(0)
+
+    # Married
+    df["y_married"] = (df["cf20m030"] % 2).fillna(0)
+
+    # Years together
+    df["y_together"] = 2024 - df["cf20m029"]
+    df["y_together"] = df["y_together"].fillna(0)
+    df["y_together2"] = df["y_together"] * df["y_together"]
+    df["y_together3"] = df["y_together"] * df["y_together2"]
+
+
+    # FEMALE PARTNER AGE
+    # If male, use partners age, if female, use own age
+    # Age has range 17 - 70
+    # df['age'] = np.where(df['cf20m003'] == 2, 2024 - df['cf20m026'], 2024 - df["birthyear_bg"])
+
+    # RESPONDENT AGE
+    df['age'] = 2024 - df["birthyear_bg"]
     df["age"] = df["age"].fillna(df["age"].mean())
+    df["age2"] = df["age"] * df["age"]
+    df["age3"] = df["age"] * df["age2"]
+
 
     # Selecting variables for modelling
     keepcols = [
-        "nomem_encr",  # ID variable required for predictions,
-        "age",         # newly created variable
-        "gender_bg"    # <--------ADDED VARIABLE
+        "nomem_encr",  # ID variable required for predictions
+        "age", "age2", "age3",
+        "y_together", "y_together2", "y_together3",
+        "y_partner"
     ] 
 
     # Keeping data with variables selected
