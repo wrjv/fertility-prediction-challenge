@@ -34,40 +34,59 @@ def clean_df(df, background_df=None):
     pd.DataFrame: The cleaned dataframe with only the necessary columns and processed variables.
     """
 
-    # Age, Age^2 & Age^3;
-    # Imputing missing values in age with the mean
-
     # Partner
     df["y_partner"] = (df["cf20m024"] % 2).fillna(0)
 
     # Married
     df["y_married"] = (df["cf20m030"] % 2).fillna(0)
 
-    # Years together
+    # Years living together [YEARS TOGETHER DIDN'T WORK]
     df["y_together"] = 2024 - df["cf20m029"]
     df["y_together"] = df["y_together"].fillna(0)
     df["y_together2"] = df["y_together"] * df["y_together"]
     df["y_together3"] = df["y_together"] * df["y_together2"]
 
+    # Relationship satisfaction [CURRENTLY NOT USED BECAUSE LOGIT BECAME MUCH WORSE]
+    # Imputing missing values with the mean
+    df["satisfied"] = np.where(df['cf20m180'] == 999, np.NaN, df['cf20m180'])
+    df["satisfied"] = df["satisfied"].fillna(df["satisfied"].mean())
 
+    # Age difference between both partners [NOT USED, MAKES PREDICTIONS WORSE]
+    df["age_diff_mf"] = np.where((df['cf20m003'] == 2) & (df['cf20m003'] != df['cf20m032']), df["birthyear_bg"] - df['cf20m026'], np.NaN)
+    df["age_diff_mf"] = np.where((df['cf20m003'] == 1) & (df['cf20m003'] != df['cf20m032']), df['cf20m026'] - df["birthyear_bg"], df["age_diff_mf"])
+    df["age_diff_mf"] = df["age_diff_mf"].fillna(df["age_diff_mf"].mean())
     # FEMALE PARTNER AGE
     # If male, use partners age, if female, use own age
     # Age has range 17 - 70
     # df['age'] = np.where(df['cf20m003'] == 2, 2024 - df['cf20m026'], 2024 - df["birthyear_bg"])
+    # df['age'] = np.where((df['cf20m003'] == 2) & (df['age'] == np.NaN), 2024 - df["birthyear_bg"] - df["age_diff_mf"].mean(), df['age'])
 
     # RESPONDENT AGE
+    # Age, Age^2 & Age^3;
     df['age'] = 2024 - df["birthyear_bg"]
     df["age"] = df["age"].fillna(df["age"].mean())
     df["age2"] = df["age"] * df["age"]
     df["age3"] = df["age"] * df["age2"]
 
+    # Want child
+    df["child_want"] = np.where((df["cf20m128"] == 1), 1, 0)
+    df["child_want_years"] = np.where((df["cf20m130"] <= 1), 1, 0)
+    df["child_want_years2"] = np.where((df["cf20m130"] <= 2), 1, 0)
+    df["child_want_years3"] = np.where((df["cf20m130"] <= 3), 1, 0)
+
+    df["religion"] = np.where((df["cr20m041"] <= 3), 1, 0)
+
+    # Trouble making ends meet
+    df["poor"] = np.where((df["ci20m245"] == 1), 1, 0)
 
     # Selecting variables for modelling
     keepcols = [
         "nomem_encr",  # ID variable required for predictions
         "age", "age2", "age3",
         "y_together", "y_together2", "y_together3",
-        "y_partner"
+        "y_partner",
+        "child_want", "child_want_years", "child_want_years2", "child_want_years3",
+        "religion", "poor"
     ] 
 
     # Keeping data with variables selected
