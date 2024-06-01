@@ -11,6 +11,7 @@ number of folds, model, et cetera
 import random
 import pandas as pd
 from sklearn.linear_model import LogisticRegression
+from sklearn.neural_network import MLPClassifier
 import joblib
 
 def train_save_model(cleaned_df, outcome_df):
